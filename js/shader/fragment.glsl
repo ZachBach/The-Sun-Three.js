@@ -128,9 +128,10 @@ vec4 j1=permute(permute(permute(permute(
 			
 			void main(){
 				// vec2 newUV = (vUv - vec2(0.5))*resolution.zw + vec2(0.5);
-				float noises=snoise(vec4(vUv*10.,1.,time));
+				float noises=snoise(vec4(vPosition*3.,time*.05));
 				gl_FragColor=vec4(vUv,0.,1.);
 				gl_FragColor=vec4(noises);
+				// gl_FragColor=vec4(vPosition,1.);
 			}
 			
 			
