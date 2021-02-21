@@ -126,12 +126,29 @@ vec4 j1=permute(permute(permute(permute(
 				
 			}
 			
+			float fbm(vec4 p){
+				float sum=0.;
+				float amp=1.;
+				float scale=1.;
+				
+				for(int i=0;i<6;i++){
+					sum+=snoise(p*scale)*amp;
+					p.w+=100.;
+					amp*=-.9;
+					scale*=2.;
+				}
+				return sum;
+			}
+			
 			void main(){
 				// vec2 newUV = (vUv - vec2(0.5))*resolution.zw + vec2(0.5);
-				float noises=snoise(vec4(vPosition*3.,time*.05));
-				gl_FragColor=vec4(vUv,0.,1.);
+				vec4 p=vec4(vPosition*5.,time*.005);
+				float noises=fbm(p);
+				vec4 p1=vec4(vPosition*2.,time*.05);
+				float spots=max(snoise(p1),0.);
 				gl_FragColor=vec4(noises);
 				// gl_FragColor=vec4(vPosition,1.);
+				gl_FragColor*=mix(1.,spots,.7);
 			}
 			
 			

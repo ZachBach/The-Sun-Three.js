@@ -1,7 +1,14 @@
 import * as THREE from "three";
+import { CubeCamera } from "three";
+let OrbitControls = require("three-orbit-controls")(THREE);
+
 import fragment from "./shader/fragment.glsl";
 import vertex from "./shader/vertex.glsl";
-let OrbitControls = require("three-orbit-controls")(THREE);
+import fragmentSun from "./shaderSun/fragment.glsl";
+import vertexSun from "./shaderSun/vertex.glsl";
+import * as dat from "dat.gui";
+import gasp from "gsap";
+
 
 export default class Sketch {
   constructor(options) {
@@ -33,13 +40,46 @@ export default class Sketch {
     this.time = 0;
 
     this.isPlaying = true;
-    
+
+    this.addTexture();
     this.addObjects();
     this.resize();
     this.render();
     this.setupResize();
     // this.settings();
   }
+
+  addTexture() {
+      // Create cube render target
+      this.cubeRenderTarget1 = new THREE.WebGLCubeRenderTarget( 256, { format: THREE.RGBFormat, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter } );
+
+       this.cubeCamera1 = new THREE.CubeCamera(0.1, 10, this.cubeRenderTarget1)
+
+
+    this.materialPerlin = new THREE.ShaderMaterial({
+      extensions: {
+        derivatives: "#extension GL_OES_standard_derivatives : enable"
+      },
+      side: THREE.DoubleSide,
+      uniforms: {
+        time: { type: "f", value: 0 },
+        resolution: { type: "v4", value: new THREE.Vector4() },
+        uvRate1: {
+          value: new THREE.Vector4(1, 1)
+        }
+      },
+      // wireframe: true,
+      // transparent: true,
+      vertexShader: vertex,
+      fragmentShader: fragment
+    });
+
+    this.geometry = new THREE.SphereGeometry(0.99, 30, 30);
+
+    this.perlin = new THREE.Mesh(this.geometry, this.materialPerlin);
+    this.scene.add(this.perlin);
+
+  };
 
   settings() {
     let that = this;
@@ -64,7 +104,7 @@ export default class Sketch {
 
   addObjects() {
     let that = this;
-    this.material = new THREE.ShaderMaterial({
+    this.materialSun = new THREE.ShaderMaterial({
       extensions: {
         derivatives: "#extension GL_OES_standard_derivatives : enable"
       },
@@ -78,8 +118,8 @@ export default class Sketch {
       },
       // wireframe: true,
       // transparent: true,
-      vertexShader: vertex,
-      fragmentShader: fragment
+      vertexShader: vertexSun,
+      fragmentShader: fragmentSun
     });
 
     this.geometry = new THREE.SphereGeometry(1, 30, 30);
@@ -101,8 +141,12 @@ export default class Sketch {
 
   render() {
     if (!this.isPlaying) return;
+
+    // cubeCamera2.update(this.renderer, this.scene);
+    // material.envMap = cubeRenderTarget2.texture;
+
     this.time += 0.05;
-    this.material.uniforms.time.value = this.time;
+    this.materialSun.uniforms.time.value = this.time;
     requestAnimationFrame(this.render.bind(this));
     this.renderer.render(this.scene, this.camera);
   }
